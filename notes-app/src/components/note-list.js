@@ -12,18 +12,29 @@ class NoteList extends HTMLElement {
     this._notes = notes;
     this.render();
   }
-  
+
   set view(view) {
     this._view = view;
     this.render();
   }
 
+  connectedCallback() {
+    this.shadowRoot.addEventListener("archive-note", (event) => {
+      const { id, archived } = event.detail;
+      const noteIndex = this._notes.findIndex(note => note.id == id);
+      if (noteIndex !== -1) {
+        this._notes[noteIndex].archived = !archived;
+        this.render();
+      }
+    });
+  }
+
   render() {
-    const filteredNotes = this._notes.filter(note => 
+    const filteredNotes = this._notes.filter(note =>
       this._view === "active" ? !note.archived : note.archived
     );
 
-    const emptyMessage = this._view === "active" 
+    const emptyMessage = this._view === "active"
       ? "Tidak ada catatan aktif. Silakan tambahkan catatan baru."
       : "Tidak ada catatan terarsip.";
 
@@ -96,12 +107,12 @@ class NoteList extends HTMLElement {
       </div>
     `;
 
-    // Add event listeners to view toggle buttons
+    // Event toggle
     this.shadowRoot.getElementById('active-btn').addEventListener('click', () => {
       this._view = 'active';
       this.render();
     });
-    
+
     this.shadowRoot.getElementById('archived-btn').addEventListener('click', () => {
       this._view = 'archived';
       this.render();
